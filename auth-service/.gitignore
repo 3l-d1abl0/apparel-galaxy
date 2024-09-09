@@ -1,3 +1,5 @@
 auth-env/
 envs/
 comms
+
+**__pycache__**
