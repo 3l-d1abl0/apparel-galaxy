@@ -3,8 +3,7 @@ import os
 from functools import lru_cache
 from pydantic_settings import BaseSettings
 
-
-log = logging.getLogger("uvicorn")
+from .logger import logger
 
 class Settings(BaseSettings):
 
@@ -25,5 +24,5 @@ class Settings(BaseSettings):
 
 @lru_cache()
 def get_settings() -> BaseSettings:
-    log.info("Loading config settings from the environment...")
+    logger.info("Loading config settings from the environment...")
     return Settings()

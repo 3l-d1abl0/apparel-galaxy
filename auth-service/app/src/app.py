@@ -1,18 +1,19 @@
 from fastapi import FastAPI, Depends, HTTPException, status
-import logging
-
+from .logger import logger
 
 from src.config import get_settings,Settings
-log = logging.getLogger("uvicorn")
 from contextlib import asynccontextmanager
+from .middleware import log_middleware
+from starlette.middleware.base import BaseHTTPMiddleware
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    log.info("Starting up...")
+    logger.info("Starting up...")
     yield
-    log.info("Shutting down...")
+    logger.info("Shutting down...")
 
 app = FastAPI(lifespan=lifespan)
+app.add_middleware(BaseHTTPMiddleware, dispatch=log_middleware)
 
 
 @app.get("/ping")
