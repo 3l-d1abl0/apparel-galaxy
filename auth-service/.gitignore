@@ -3,3 +3,4 @@ envs/
 comms
 
 **__pycache__**
+logs/app.log
