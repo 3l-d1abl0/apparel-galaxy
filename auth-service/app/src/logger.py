@@ -8,7 +8,7 @@ logger = logging.getLogger("auth-logger")
 
 #create formatter
 formatter = logging.Formatter(
-    fmt="%(levelname)s: %(asctime)s - %(filename)s:%(funcName)s -  - %(message)s"
+    fmt="%(levelname)s: %(asctime)s - %(filename)s:%(funcName)s - %(message)s"
 )
 
 #Create Handler
