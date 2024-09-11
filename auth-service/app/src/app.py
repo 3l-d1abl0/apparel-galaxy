@@ -5,7 +5,7 @@ from .utils import get_password_hash, validate_password, create_access_token
 from .auth import authenticate_user
 from .logger import logger
 from datetime import datetime
-from src.config import get_settings,Settings
+from .config import get_settings,Settings
 from contextlib import asynccontextmanager
 from .middleware import log_middleware
 from starlette.middleware.base import BaseHTTPMiddleware
