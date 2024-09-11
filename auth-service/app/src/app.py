@@ -21,7 +21,28 @@ async def lifespan(app: FastAPI):
     yield
     logger.info("Shutting down...")
 
-app = FastAPI(lifespan=lifespan)
+
+description = """
+Auth service for Apparel Galaxy . 🚀
+
+## Endpoints
+* **register** (_register a user_).
+* **onboard** (_registers a user as admin_).
+* **login** (_login user and issue jwt_).
+"""
+
+app = FastAPI(lifespan=lifespan,
+              title="   Auth Service - ApparelGalaxy",
+            description=description,
+            summary="A microservice for handling auth functionality",
+            version="0.0.1",
+            terms_of_service="http://example.com/terms/",
+            contact={
+                "name": "Sameer",
+                "url": "http://github.com/3l-d1abl0",
+                "email": "sameer.barha12@gmail.com",
+            },)
+
 app.add_middleware(BaseHTTPMiddleware, dispatch=log_middleware)
 
 #Ping Route
