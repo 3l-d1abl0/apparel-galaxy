@@ -25,3 +25,25 @@ export async function getAllProducts<T> (projection: T, skip: number, limit: num
 
   }
 }
+
+export async function getProductById<T> (projection: T, id: string): Promise<ITrimmedProduct | IProduct>  {
+
+  try{
+      if (projection !== null){
+        return TrimmedProduct.findOne(
+          { uniqueId: id },
+            projection
+        );
+
+      }else{
+        console.log("Product:", Product);
+        return Product.findOne({ uniqueId: id });  
+      }
+
+  }catch(error){
+    console.log('ERR: getProductById<T> ', id, projection == null ? 'NULL': 'projectionTrimmed')
+    console.log('ERR: ', error);
+     return null;
+  }
+
+}
