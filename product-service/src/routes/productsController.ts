@@ -72,5 +72,45 @@ router.get('/:id(\\d+)', async (req, res) => {
 });
 
 
+router.get('/search', async (req: Request<{}, {}, {}, SearchQuery>, res: Response) => {
+
+  try {
+
+    let q:string  = req.query.q;
+    console.log(q, req.query.page, req.query.limit);
+    q= q.trim();
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 5;
+    const skip = (page - 1) * limit;
+
+    
+    if (!q) {
+      return res.status(400).json({ message: 'Provide a Search Query' });
+    }
+
+    console.log(`/search ${q} ${skip} ${limit}`);
+
+    let products;
+
+    if (req.user.role == 0)
+      products = await productModel.searchProducts<null>(null, q, skip, limit);
+    
+    else
+      products = await productModel.searchProducts<typeof projectionProductTrimmed>(projectionProductTrimmed, q, skip, limit);
+
+    //const products = await productModel.searchProducts(q, skip, limit);
+
+    if (products) {
+      res.json(products);
+    } else {
+      res.status(404).json({ message: `Products not found for query ${q}` });
+    }
+
+  } catch (error) {
+    console.error('Error in product search:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
 
 export default router;
