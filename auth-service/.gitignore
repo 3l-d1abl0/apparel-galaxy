@@ -1,6 +1,9 @@
 auth-env/
-envs/
+envs/.env
 comms
+comms.links
+htmlcov/
+.coverage
 
 **__pycache__**
 logs/app.log
