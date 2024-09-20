@@ -63,4 +63,23 @@ describe("Fetch Product by Id", () => {
 
   });
 
+
+  it("should return sample product (Trimmed)", async () => {
+    const trimmedProduct: ITrimmedProduct = await getProductById<
+      typeof projectionProductTrimmed
+    >(projectionProductTrimmed, sampleProduct.uniqueId);
+
+    expect(trimmedProduct.uniqueId).toEqual(sampleProduct.uniqueId);
+    //Validate Trimmed Schema
+    validateTrimmedProductSchema([trimmedProduct]);
+
+  });
+
+  it("should return no product", async () => {
+    const nonExistantUniqueID = "CFDGH56489GHY";
+    const product = await getProductById<null>(null, nonExistantUniqueID);
+
+    expect(product).toBe(null);
+  });
+
 });
