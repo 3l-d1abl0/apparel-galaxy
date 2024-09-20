@@ -164,3 +164,46 @@ describe("Search Product by query", () => {
     expect(products.length).toBe(0);
   });
 });
+
+
+//Suite to Test Browse Product
+describe("Fetch All", () => {
+  
+  it("should fetch products within limit", async () => {
+    const skip: number = 20;
+    const limit: number = 10;
+
+    const productAll = await getAllProducts<null>(null, skip, limit);
+    expect(limit).toBe(productAll.length);
+
+    validateProductSchema(productAll);
+  });
+
+  it("should fetch products (Trimmed) within limit", async () => {
+    const skip: number = 20;
+    const limit: number = 10;
+
+    const productAll = await getAllProducts<typeof projectionProductTrimmed>(
+      projectionProductTrimmed,
+      skip,
+      limit,
+    );
+    expect(limit).toBe(productAll.length);
+
+    validateTrimmedProductSchema(productAll);
+
+  });
+
+  it("should return no product - querying beyond total number of products", async () => {
+    const totalDocumentCount: number = await dBase
+      .collection("inventory")
+      .countDocuments();
+    const skip: number = totalDocumentCount + 20;
+    const limit: number = 10;
+
+    const productAll = await getAllProducts<null>(null, skip, limit);
+    //console.log(skip);
+    expect(productAll.length).toBe(0);
+  });
+
+});
