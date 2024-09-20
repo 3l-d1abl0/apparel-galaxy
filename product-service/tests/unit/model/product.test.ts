@@ -37,6 +37,7 @@ afterAll(async () => {
   await mongoose.disconnect();
 });
 
+//Suite to Test Product by Id
 describe("Fetch Product by Id", () => {
   beforeAll(async () => {
     //Setup new Sample Data with all fields
@@ -82,4 +83,84 @@ describe("Fetch Product by Id", () => {
     expect(product).toBe(null);
   });
 
+});
+
+
+//Suite to Test Product by Search Query
+describe("Search Product by query", () => {
+  beforeAll(async () => {
+    //Setup new Sample Data with all fields
+    const insert = await dBase.collection("inventory").insertOne(sampleProduct);
+  });
+
+  afterAll(async () => {
+    //delete the setup data
+    const delOne = await dBase
+      .collection("inventory")
+      .deleteMany({ uniqueId: sampleProduct.uniqueId });
+  });
+
+
+  it("should search sample product and fetch all fields", async () => {
+    const skip: number = 0;
+    const limit: number = 10;
+    const query: string = sampleProduct.title;
+
+    const products: ITrimmedProduct[] | IProduct[] = await searchProducts<null>(
+      null,
+      query,
+      skip,
+      limit,
+    );
+
+    if (!products) expect(false);
+
+    //#Products <= limit
+    expect(products.length).toBeLessThanOrEqual(limit);
+
+    //Check if the query is present the recieved result
+    expect(lookForQuery(query, products)).toBe(true);
+
+    validateProductSchema(products);
+  });
+
+  it("should search the sample product (Trimmed)", async () => {
+    const skip: number = 0;
+    const limit: number = 10;
+    const query: string = "Matte"; //sampleProduct.title;
+
+    const trimmedProducts: ITrimmedProduct[] | IProduct[] =
+      await searchProducts<typeof projectionProductTrimmed>(
+        projectionProductTrimmed,
+        query,
+        skip,
+        limit,
+      );
+
+    if (!trimmedProducts) expect(false);
+
+    //#Products <= limit
+    expect(trimmedProducts.length).toBeLessThanOrEqual(limit);
+
+    expect(lookForQuery(query, trimmedProducts)).toBe(true);
+
+    validateTrimmedProductSchema(trimmedProducts);
+
+  });
+
+  it("should return no product", async () => {
+    const skip: number = 0;
+    const limit: number = 10;
+    //A query that shoould not exit in your Db
+    const query: string = "L'Amour Toujours";
+
+    const products: ITrimmedProduct[] | IProduct[] = await searchProducts<null>(
+      null,
+      query,
+      skip,
+      limit,
+    );
+
+    expect(products.length).toBe(0);
+  });
 });
