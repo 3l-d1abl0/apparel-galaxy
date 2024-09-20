@@ -6,4 +6,4 @@ htmlcov/
 .coverage
 
 **__pycache__**
-logs/app.log
+app/logs/app.log
