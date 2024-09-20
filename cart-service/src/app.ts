@@ -1,7 +1,6 @@
 import express, { Express, Request, Response } from "express";
-import { config } from './config/config.js';
-//import productRoutes from './routes/productsController.js';
-//import secured from './middleware/secured.js';
+import cartRoutes from './routes/cartController.js';
+import secured from './middleware/secured.js';
 
 
 const app: Express = express();
@@ -36,8 +35,8 @@ mongoose.set('debug', function(collectionName, methodName, ...methodArgs) {
 });
 */
 
-//app.use(secured);
-//app.use('/products', productRoutes);
+app.use(secured);
+app.use('/cart', cartRoutes);
 
 interface ResponseError extends Error {
   status?: number;
