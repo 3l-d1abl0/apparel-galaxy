@@ -1,0 +1,62 @@
+export const sampleUser = {
+    email: "some_random_user@example.com",
+    hashed_password: "Ideally Should be some hashed Password",
+    user_type: 0,
+    created_at: new Date(),
+  };
+  
+  export const sampleProduct = {
+    uniqueId: "999999",
+    title: "Matte Black Jacket",
+    description:
+      '<ul id="productBullets"><li>Lobster claw clasp</li><li>28"L with 3" extender</li><li>Imported</li></ul>',
+    categoryPath: ["Jewelry", "Jewelry>Necklaces"],
+    categoryPathId: ["4|Jewelry", "4|Jewelry>22|Necklaces"],
+    imageUrl:
+      "/IG.ashx?img=Images/Product/999999/25311/StillPhoto/25311_frt_1.jpg&Dim=ResultsPageImage",
+    productUrl: "/Product.aspx?ID=999999",
+    brand_id: 44,
+    brand_name: "Stephan and Co.",
+    availability: true,
+    style: "DQ47N1745",
+    sale: false,
+    department_id: 695,
+    department_name: "Accessories",
+    originalPriceRange: "$16.00",
+    currentPriceRange: "$16.00",
+    isPriceException: false,
+    priceException: "",
+    published: 999999,
+    soldQty: 3,
+    variants: [
+      {
+        variantId: "999999",
+        vSku: "99999919",
+        vUpc: "020748147782",
+        vColor_id: 24114,
+        vColor_name: "Goldtone",
+        vColor_colorGroup: "Yellow",
+        vSize_id: 24027,
+        vSize_name: '28"',
+        vSale: false,
+        vPrice: 16,
+        vAvailability: true,
+        vQuantity: 10,
+      },
+      {
+        variantId: "999999",
+        vSku: "99999920",
+        vUpc: "020748147782",
+        vColor_id: 24114,
+        vColor_name: "Goldtone",
+        vColor_colorGroup: "Yellow",
+        vSize_id: 24027,
+        vSize_name: '28"',
+        vSale: false,
+        vPrice: 16,
+        vAvailability: true,
+        vQuantity: 10,
+      },
+    ],
+  };
+  
