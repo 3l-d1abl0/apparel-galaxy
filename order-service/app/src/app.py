@@ -1,9 +1,9 @@
-from fastapi import FastAPI, Depends, HTTPException, status
+from fastapi import FastAPI, Depends,Request
 from .logger import logger
 from datetime import datetime
 from .config import get_settings,Settings
 from contextlib import asynccontextmanager
-from .middleware import log_middleware
+from src.middleware import JWTMiddleware, LOGMiddleware
 from starlette.middleware.base import BaseHTTPMiddleware
 from pydantic import ValidationError
 from pymongo.collection import Collection
@@ -37,7 +37,14 @@ app = FastAPI(lifespan=lifespan,
                 "email": "sameer.barha12@gmail.com",
             },)
 
-app.add_middleware(BaseHTTPMiddleware, dispatch=log_middleware)
+# Add middlewares
+#app.add_middleware(BaseHTTPMiddleware, dispatch=ORDERSERVICEMiddleware.log_middleware)
+# app.add_middleware(BaseHTTPMiddleware, dispatch=log_middleware)
+# app.add_middleware(BaseHTTPMiddleware, dispatch=jwt_extract)
+
+# Add middlewares
+app.add_middleware(LOGMiddleware.LoggingMiddleware)
+app.add_middleware(JWTMiddleware.JWTMiddleware)
 
 #Ping Route
 @app.get("/ping")
@@ -48,3 +55,19 @@ async def pong(settings: Settings = Depends(get_settings)):
 @app.get("/")
 async def welcome():
     return { "service": "order" }
+
+@app.post("/order")
+async def create_order(request: Request):
+
+    print(request.state.user)
+    '''
+        1. Add middleware to check for JWT token
+        2. check if the user sending checkout request is the same user
+        the cart belongs to (call User Service)
+
+        3. reserve the cart Products (keep concurrency in mind)
+        and create a an Order
+
+    '''
+
+    return {"ok": "okok"}

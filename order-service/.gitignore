@@ -3,3 +3,8 @@ order-service-env/*
 comms-order-service
 
 envs/.env
+
+htmlcov/
+.coverage
+
+**__pycache__**
