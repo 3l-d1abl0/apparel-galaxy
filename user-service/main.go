@@ -5,6 +5,8 @@ import (
 	"io"
 	"log"
 	"os"
+	"user-service/src/middlewares"
+	router "user-service/src/routes"
 
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
@@ -36,10 +38,15 @@ func init() {
 
 func main() {
 
+	port := os.Getenv("PORT")
 	//Gin setup
 	app := gin.Default()
 
-	port := os.Getenv("PORT")
+	//Middleware Setup
+	app.Use(middlewares.JWTAuthMiddleware(logger))
+
+	//Setup the routes
+	router.Setup(app, logger)
 
 	logger.Info("Starting Server on: ", port)
 	log.Fatal(app.Run(fmt.Sprintf(":%s", port)))
