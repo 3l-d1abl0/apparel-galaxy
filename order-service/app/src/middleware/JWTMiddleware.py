@@ -9,22 +9,6 @@ from fastapi.responses import JSONResponse
 
 class JWTMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next: RequestResponseEndpoint):
-
-        print("\n------------------------")
-        print("Request Information:")
-        print(f"Method: {request.method}")
-        print(f"URL: {request.url}")
-        print(f"Headers: {dict(request.headers)}")
-        print(f"Query Params: {dict(request.query_params)}")
-        
-        # Print body for POST, PUT, PATCH requests
-        if request.method in ["GET", "POST", "PUT", "PATCH"]:
-            body = await request.body()
-            try:
-                body_json = json.loads(body)
-                print(f"Body: {json.dumps(body_json, indent=2)}")
-            except json.JSONDecodeError:
-                print(f"Body: {body.decode()}")
         
         #Extract Auth header
         try:
@@ -51,13 +35,12 @@ class JWTMiddleware(BaseHTTPMiddleware):
             email: str = payload.get("user")
             role: int = payload.get("role")
 
-            print(payload)
-            print("$$$$$$$$$$$$$")
-
             if email is None or role is None:
-                raise HTTPException(status_code=401, detail="Invalid token")
-        
-            print(payload)
+                return JSONResponse(
+                   status_code=401,
+                    content={"detail": "Invalid or expired token"}
+                )
+            
             request.state.user = payload
         except JWTError:
             return JSONResponse(
