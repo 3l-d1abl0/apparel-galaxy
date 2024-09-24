@@ -1,15 +1,15 @@
-from fastapi import FastAPI, Depends,Request
+from fastapi import FastAPI, Depends, Request, HTTPException
 from .logger import logger
-from datetime import datetime
 from .config import get_settings,Settings
 from contextlib import asynccontextmanager
 from src.middleware import JWTMiddleware, LOGMiddleware
-from starlette.middleware.base import BaseHTTPMiddleware
-from pydantic import ValidationError
+from .schemas import OrderCreateSchema, PyObjectId, OrderResponseSchema
 from pymongo.collection import Collection
-#from bson import errors
-from pymongo.errors import DuplicateKeyError
-
+from .database import db
+from bson import ObjectId
+from typing import List
+from pydantic import ValidationError
+from datetime import datetime
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -49,25 +49,37 @@ app.add_middleware(JWTMiddleware.JWTMiddleware)
 #Ping Route
 @app.get("/ping")
 async def pong(settings: Settings = Depends(get_settings)):
-    #return { "ping": settings }
     return "pong"
 
 @app.get("/")
 async def welcome():
     return { "service": "order" }
 
-@app.post("/order")
-async def create_order(request: Request):
 
-    print(request.state.user)
-    '''
-        1. Add middleware to check for JWT token
-        2. check if the user sending checkout request is the same user
-        the cart belongs to (call User Service)
+@app.post("/order", response_model=OrderResponseSchema)
+async def create_order(request: Request, order_data: OrderCreateSchema, settings: Settings = Depends(get_settings)):
 
-        3. reserve the cart Products (keep concurrency in mind)
-        and create a an Order
+    try:
+        order_dict = order_data.model_dump()
+    except ValidationError as e:
+        raise HTTPException(status_code=400, detail="Invalid user data")
+    
+    #Get userId by email
+    user_email = request.state.user["user"]
+    users_collection: Collection = db[settings.MONGO_USER_COLLECTION]
+    existing_user = users_collection.find_one({"email": user_email})
+    if not existing_user:
+        raise HTTPException(status_code=400, detail="User does not Exists")
+    
 
-    '''
+    #Create Order
+    order_dict.update({ "userId": PyObjectId(existing_user["_id"]), "created_at": datetime.now()})
+    orders_collection: Collection = db[settings.MONGO_ORDERS_COLLECTION]
+    try:   
+        orders_collection.insert_one(order_dict)
+    except Exception as e:
+        logger.error(e)
+        raise HTTPException(status_code=500, detail="Failed to create Order")    
 
-    return {"ok": "okok"}
+
+    return order_dict
