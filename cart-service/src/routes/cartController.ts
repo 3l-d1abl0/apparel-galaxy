@@ -3,8 +3,59 @@ import * as cartModel from '../model/cart/cart.js';
 import {fetchProductByIdAndSku } from '../model/product/product.js';
 import mongoose from 'mongoose';
 import { ICart } from '../model/cart/cartModel.js';
+import axios, { Axios, AxiosResponse } from 'axios'; 
+import { config } from '../config/config.js';
 
 const router = Router();
+
+
+router.post('/checkout', async (req: Request, res: Response)=>{
+
+  try{
+
+    const userEmail: String = req.user.user
+
+    const userCart = await cartModel.getCartByEmail(userEmail);
+    console.log('cart/', userCart);
+
+    if(!userCart)
+        return res.status(500).json({ message: "Error while checking out" });
+    
+    //Empty cart
+    if(Object.entries(userCart.cart).length === 0)
+        return res.status(400).json({ message: "No Products to checkout (Empty Cart) !" });
+
+    let cart: ICart = userCart.cart as ICart;
+
+    const cartData = {
+      items: cart.items,
+      totalAmount: cart.totalAmount,
+    };
+
+
+    console.log(config.PRODUCT_SERVICE);
+    let reservedCart: AxiosResponse; 
+    try{
+      reservedCart = await axios.post(config.PRODUCT_SERVICE, cartData);
+    }catch(axiosError: any){
+      console.log(`Error calling ${config.PRODUCT_SERVICE}`, axiosError.response.status, axiosError.response.statusText);
+      return res.status(500).json({ message: "Error Checking out cart" });
+    }
+    
+
+    console.log(reservedCart);
+
+
+    
+    res.json({"message": "added"});
+
+
+  }catch (error) {
+    console.log("ERROR /checkout",error);
+    res.status(500).json({ message: "Error while checking out !" });
+  }
+
+});
 
 router.get('/', async (req: Request, res: Response) => {
   try {
