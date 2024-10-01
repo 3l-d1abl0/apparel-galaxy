@@ -18,5 +18,12 @@ declare global {
     page?: string;
     limit?: string;
   }
+
+  interface CartItem {
+    productId: string;
+    vSku: string;
+    vQuantity: number;
+    vPrice: number;
+  }
   
 }

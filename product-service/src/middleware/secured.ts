@@ -30,7 +30,7 @@ export default async function secured(req: Request, res: Response, next) {
                         message: "invalid token"
                     });
                 
-                console.log("User Data: ", user);
+                //console.log("User Data: ", user);
                 req.user = user
                 next();
 
