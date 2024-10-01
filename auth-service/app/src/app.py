@@ -174,7 +174,7 @@ async def login_user(user: UserCreate):
                 headers={"WWW-Authenticate": "Bearer"},
             )
         
-        access_token = create_access_token(data={"user": user.email, "role": user.user_type})
+        access_token = create_access_token(data={"user": user.email, "role": user.user_type, "id": str(user.id)})
 
         return {"access_token": access_token, "token_type": "bearer"}
 
