@@ -3,8 +3,118 @@ import * as cartModel from '../model/cart/cart.js';
 import {fetchProductByIdAndSku } from '../model/product/product.js';
 import mongoose from 'mongoose';
 import { ICart } from '../model/cart/cartModel.js';
+import axios, { Axios, AxiosResponse } from 'axios'; 
+import { config } from '../config/config.js';
 
 const router = Router();
+
+
+router.post('/checkout', async (req: Request, res: Response)=>{
+
+  try{
+
+    const userEmail: String = req.user.user
+
+    const userCart = await cartModel.getCartByEmail(userEmail);
+    console.log('cart/', userCart);
+
+    if(!userCart)
+        return res.status(500).json({ message: "Error while checking out" });
+    
+    //Empty cart
+    if(Object.entries(userCart.cart).length === 0)
+        return res.status(400).json({ message: "No Products to checkout (Empty Cart) !" });
+
+    let cart: ICart = userCart.cart as ICart;
+
+    const productsToReserve = {
+      items: cart.items,
+    };
+
+    //1. Reserve the Products
+    console.log(config.PRODUCT_SERVICE);
+    let reservedCart: AxiosResponse; 
+    let token: string = req.headers["authorization"].replace("Bearer ", "");
+
+    try{
+      console.log('TOKEN: ',token);
+
+      reservedCart = await axios.post(
+        `${config.PRODUCT_SERVICE}/reserve`, 
+        productsToReserve,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+  
+
+    }catch(axiosError: any){
+      console.log(`Error calling ${config.PRODUCT_SERVICE}/reserve`, axiosError.response.status, axiosError.response.statusText);
+      return res.status(500).json({ message: "Error reserving Cart" });
+    }
+    
+
+    console.log(reservedCart.data);
+
+    //2. Proceed to Create Order
+    const orderData = {
+      carId: cart._id,
+      userId: cart.userId,
+      items: cart.items,
+      totalAmount: cart.totalAmount
+    };
+
+    let orderResponse: AxiosResponse;
+
+    try{
+
+      orderResponse = await axios.post(
+        `${config.ORDER_SERVICE}/reserve`, 
+        orderData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+
+    }catch(axiosError: any){
+      console.log(`Error calling ${config.ORDER_SERVICE}`, axiosError.response.status, axiosError.response.statusText);
+      //Unreserve the Products, either do a call or add it to some Queue to be processed by Workers
+      try{
+          reservedCart = await axios.post(
+            `${config.PRODUCT_SERVICE}/unreserve`, 
+            productsToReserve,
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+                'Content-Type': 'application/json',
+              },
+            }
+          );
+
+      }catch(axiosError: any){
+          console.log(`Error calling ${config.PRODUCT_SERVICE}/unreserve`, axiosError.response.status, axiosError.response.statusText);
+          //Definitely put in a Queue with retry to unreserve
+          return res.status(500).json({ message: "Error Unreserving Cart" });
+      }
+
+      return res.status(500).json({ message: "Error Creating Order !" });
+    }
+    
+    res.json(orderResponse.data);
+
+
+  }catch (error) {
+    console.log("ERROR /checkout",error);
+    res.status(500).json({ message: "Error while checking out !" });
+  }
+
+});
 
 router.get('/', async (req: Request, res: Response) => {
   try {

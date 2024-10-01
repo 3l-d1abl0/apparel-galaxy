@@ -45,9 +45,7 @@ interface ResponseError extends Error {
 
 //If no match by earlier Routes
 app.use((req: Request, res: Response, next) => {
-  const error: ResponseError= new Error('Requested Route does not exist !');
-  error.status = 404;
-  next(error);
+  res.status(404).json({ message: `Requested route ${req.url} does not exist!` });
 });
 
 app.use((error: ResponseError, req: Request, res: Response) => {

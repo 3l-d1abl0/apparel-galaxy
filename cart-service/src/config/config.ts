@@ -13,6 +13,7 @@ export const config = {
   port: process.env.PORT || 3000,
   AUTH_SERVICE: process.env.AUTH_SERVICE || "http://localhost:8000",
   ORDER_SERVICE: process.env.ORDER_SERVICE || "http://localhost:9000",
+  PRODUCT_SERVICE: process.env.PRODUCT_SERVICE || "http://localhost:8080",
   JWT_SECRET: process.env.JWT_SECRET || "your_secret_key",
   JWT_ALGORITHM: process.env.JWT_ALGORITHM || "HS256",
   JWT_EXPIRATION_TIME_MINUTES: process.env.JWT_EXPIRATION_TIME_MINUTES || 10,
