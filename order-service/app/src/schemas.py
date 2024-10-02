@@ -71,6 +71,7 @@ class OrderResponseSchema(BaseModel):
     userId: PyObjectId
     items: List[ProductSchema]
     totalAmount: int
+    status: str
     created_at: datetime
 
     class Config:

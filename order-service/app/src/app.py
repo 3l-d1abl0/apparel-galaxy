@@ -65,7 +65,7 @@ async def create_order(request: Request, order_data: OrderCreateSchema, settings
         raise HTTPException(status_code=400, detail="Invalid user data")
     
     #Create Order
-    order_dict.update({ "userId": request.state.user["id"], "created_at": datetime.now()})
+    order_dict.update({ "userId": request.state.user["id"], "status": "CREATED", "created_at": datetime.now()})
     orders_collection: Collection = db[settings.MONGO_ORDERS_COLLECTION]
     
     try:   
