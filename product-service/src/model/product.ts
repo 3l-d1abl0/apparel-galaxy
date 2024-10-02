@@ -112,3 +112,186 @@ export async function searchProducts<T> (projection: T, query: string, skip: num
     return null;
   }
 }
+
+
+export async function reserveProducts1(items: CartItem[]){
+
+  const session = await mongoose.startSession();
+  session.startTransaction();
+  const lockedProductIds: mongoose.Types.ObjectId[] = [];
+
+  try{
+
+      try {
+    
+            // Lock and check availability for all items
+            for (const item of items) {
+              console.log("TRYING: ", item);
+              const prod = await Product.findOneAndUpdate(
+                {
+                  _id: new mongoose.Types.ObjectId(item.productId),
+                  'variants.vSku': item.vSku,
+                  'variants.vQuantity': { $gte: item.vQuantity },
+                  locked: false
+                },
+                { $set: { locked: true } },
+                { new: true, session }
+              );
+
+              console.error("PROD: ", prod);
+        
+              if (!prod) {
+                throw new Error(`Unable to lock or insufficient quantity for item: ${item.vSku}`);
+              }
+        
+              lockedProductIds.push(prod._id);
+
+            }//for
+
+      }catch (error){
+        console.error('ERR: reserveProduct : Checking Product ', error.message)
+        console.error('ERR: ', error);
+        await session.abortTransaction();
+        // Ensure locks are released even if an error occurred
+        if (lockedProductIds.length > 0) {
+          await Product.updateMany(
+            { _id: { $in: lockedProductIds } },
+            { $set: { locked: false } },
+            { session }
+          );
+        }
+        session.endSession();
+        if (error instanceof Error) {
+          return { status : false, type : 1,  message: error.message};
+        }else{
+          return { status : false, type : 2,  message: "Internal Server Error !"};
+        }
+
+      }//Catch - if products are available
+
+      try{
+
+        // Reserve the items
+        for (const item of items) {
+
+          console.log("RESERVING: ", item);
+
+          const result = await Product.findOneAndUpdate(
+            {
+              _id: new mongoose.Types.ObjectId(item.productId),
+              'variants.vSku': item.vSku,
+              locked: true
+            },
+            {
+              $inc: { 'variants.vQuantity': -item.vQuantity },
+              $set: { locked: false }
+            },
+            { new: true, session }
+          );
+          
+          console.log("RESULT: ", result);
+          if (!result) {
+            throw new Error(`Failed to reserve item: ${item.vSku}`);
+          }
+          
+          await session.commitTransaction();
+          session.endSession();
+          return { status : true };
+          
+        }//for
+
+      } catch (error) {
+
+
+        await session.abortTransaction();
+        console.error('ERR: reserveProduct ', error.message)
+        console.error('Error during reservation:', error);
+        // Ensure locks are released even if an error occurred
+        if (lockedProductIds.length > 0) {
+          await Product.updateMany(
+            { _id: { $in: lockedProductIds } },
+            { $set: { locked: false } },
+            { session } 
+          );
+        }
+        session.endSession();
+
+        if (error instanceof Error) {
+          return { status : false, type: 1, message: error.message };
+        } else {
+          return { status : false, type : 2,  message: "Internal Server Error !"};
+        }
+      }
+
+
+  }catch(error){
+
+    console.error('ERR: reserveProduct ', items)
+    console.error('ERR: ', error);
+    await session.abortTransaction();
+    // Ensure locks are released even if an error occurred
+    if (lockedProductIds.length > 0) {
+      await Product.updateMany(
+        { _id: { $in: lockedProductIds } },
+        { $set: { locked: false } },
+        { session }
+      );
+    }
+    session.endSession();
+
+    return { status : false, type : 2,  message: "Internal Server Error !"};
+  }
+}
+
+
+
+export async function reserveProducts(items: CartItem[]){
+
+   // Start a MongoDB session for transactions
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
+  try {
+    // Loop through items to reserve inventory
+    for (const item of items) {
+      const { productId, vSku, vQuantity } = item;
+
+      // Find the product and check if the required quantity is available using an atomic update
+      const product = await Product.findOneAndUpdate(
+        {
+          _id: productId,
+          'variants.vSku': vSku,
+          'variants.vQuantity': { $gte: vQuantity }  // Ensure enough quantity is available
+        },
+        {
+          $inc: { 'variants.$.vQuantity': -vQuantity }  // Atomically decrease the quantity
+        },
+        { new: true, session }  // Use the session in the operation
+      );
+
+      console.log("PRODUCT: ",product);
+
+      if (!product) {
+        // If the product or enough stock is not found, abort the transaction
+        await session.abortTransaction();
+        return { status : false, type: 1, message: `Insufficient quantity or product not found for SKU ${vSku}` };
+      }
+    }
+
+    // Commit the transaction
+    await session.commitTransaction();
+    session.endSession();
+    return { status : true };
+    
+
+  } catch (error) {
+    
+    // Rollback the transaction in case of error
+    await session.abortTransaction();
+    session.endSession();
+    console.error(error);
+    return { status : false, type: 2, message: 'Internal Server Error !' };
+
+  }
+
+}
