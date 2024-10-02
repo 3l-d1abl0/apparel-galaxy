@@ -64,17 +64,10 @@ async def create_order(request: Request, order_data: OrderCreateSchema, settings
     except ValidationError as e:
         raise HTTPException(status_code=400, detail="Invalid user data")
     
-    #Get userId by email
-    user_email = request.state.user["user"]
-    users_collection: Collection = db[settings.MONGO_USER_COLLECTION]
-    existing_user = users_collection.find_one({"email": user_email})
-    if not existing_user:
-        raise HTTPException(status_code=400, detail="User does not Exists")
-    
-
     #Create Order
-    order_dict.update({ "userId": PyObjectId(existing_user["_id"]), "created_at": datetime.now()})
+    order_dict.update({ "userId": request.state.user["id"], "created_at": datetime.now()})
     orders_collection: Collection = db[settings.MONGO_ORDERS_COLLECTION]
+    
     try:   
         orders_collection.insert_one(order_dict)
     except Exception as e:
