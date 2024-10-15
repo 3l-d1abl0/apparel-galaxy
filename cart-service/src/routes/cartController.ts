@@ -18,8 +18,10 @@ router.post('/checkout', async (req: Request, res: Response)=>{
     const userCart = await cartModel.getCartByEmail(userEmail);
     console.log('cart/', userCart);
 
-    if(!userCart)
+    if(!userCart){
+        console.error(`Error while fetching cart for user: ${userEmail}`);
         return res.status(500).json({ message: "Error while checking out" });
+    }
     
     //Empty cart
     if(Object.entries(userCart.cart).length === 0)
@@ -31,8 +33,7 @@ router.post('/checkout', async (req: Request, res: Response)=>{
       items: cart.items,
     };
 
-    //1. Reserve the Products
-    console.log(config.PRODUCT_SERVICE);
+    //1. Reserve the Products from the Cart
     let reservedCart: AxiosResponse; 
     let token: string = req.headers["authorization"].replace("Bearer ", "");
 
@@ -57,7 +58,7 @@ router.post('/checkout', async (req: Request, res: Response)=>{
     }
     
 
-    console.log(reservedCart.data);
+    console.log("RESERVED: ",reservedCart.data);
 
     //2. Proceed to Create Order
     const orderData = {
@@ -72,7 +73,7 @@ router.post('/checkout', async (req: Request, res: Response)=>{
     try{
 
       orderResponse = await axios.post(
-        `${config.ORDER_SERVICE}/reserve`, 
+        `${config.ORDER_SERVICE}`, 
         orderData,
         {
           headers: {
@@ -106,6 +107,16 @@ router.post('/checkout', async (req: Request, res: Response)=>{
       return res.status(500).json({ message: "Error Creating Order !" });
     }
     
+    //3. SET Cart status to Processing
+
+    const cartId: mongoose.Types.ObjectId = cart._id as mongoose.Types.ObjectId;
+    const updatedCartStatus = await cartModel.setCartToProcessing(cartId);
+
+    if(updatedCartStatus == false){
+      console.log('Failed to update cart to Processing !');
+    }
+
+
     res.json(orderResponse.data);
 
 
