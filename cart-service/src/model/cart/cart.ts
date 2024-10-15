@@ -139,3 +139,19 @@ export async function deleteItemInCart(existingItemIndex: number, productToDelet
         return null;
     }
 }
+
+export async function setCartToProcessing(cartId: mongoose.Types.ObjectId){
+    try{
+        const update ={status: "PROCESSING"};
+        const updatedCart = CartModel.findOneAndUpdate({_id: cartId}, update);
+        return true;
+        if(!updatedCart){
+            //Not able to update Cart to Processing
+            console.log('Not able to update Cart Status to ');
+            return false;
+        }
+    }catch(error){
+        console.log('ERROR: setCartToProcessing ', error);
+        return false
+    }
+}
