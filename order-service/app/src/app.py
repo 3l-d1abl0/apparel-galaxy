@@ -3,14 +3,15 @@ from .logger import logger
 from .config import get_settings,Settings
 from contextlib import asynccontextmanager
 from src.middleware import JWTMiddleware, LOGMiddleware
-from .schemas import OrderCreateSchema, PyObjectId, OrderResponseSchema
+from .schemas import OrderCreateSchema, OrderResponseSchema, AllOrders
 from pymongo.collection import Collection
 from bson import ObjectId
 from typing import List
 from pydantic import ValidationError
 from datetime import datetime
 from pydantic import create_model
-from .models import *
+from .models import get_all_orders, get_order_data, confirm_order, add_failure_data
+from .database import db
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -55,6 +56,22 @@ async def pong(settings: Settings = Depends(get_settings)):
 @app.get("/")
 async def welcome():
     return { "service": "order" }
+
+@app.get("/order", response_model=AllOrders)
+async def fetch_order(request: Request, settings: Settings = Depends(get_settings)):
+    user_id = request.state.user['id']
+    print("USERID: ", user_id)
+    user_order_data = get_all_orders(user_id)
+
+    if user_order_data == False:
+        raise HTTPException(status_code=500, detail="Failed to fetch Orders")    
+    
+    user_orders = []
+    for order in user_order_data:
+        order_schema = OrderResponseSchema(**order)
+        user_orders.append(order_schema)
+
+    return AllOrders(orders=user_orders)
 
 
 @app.post("/order", response_model=OrderResponseSchema)

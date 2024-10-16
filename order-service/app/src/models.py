@@ -6,6 +6,16 @@ from .logger import logger
 
 order_collection: Collection = db.orders
 
+def get_all_orders(user_id):
+
+    try:
+        order_data = order_collection.find( {'userId': user_id})
+        return order_data
+    except Exception as e:
+        logger.error(e)
+        logger.error("Error while fetching order ::get_all_orders: ", user_id)
+        return False
+
 def get_order_data(order_id) :
     
     try:
