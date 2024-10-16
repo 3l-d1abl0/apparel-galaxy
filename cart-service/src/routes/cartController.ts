@@ -38,7 +38,6 @@ router.post('/checkout', async (req: Request, res: Response)=>{
     let token: string = req.headers["authorization"].replace("Bearer ", "");
 
     try{
-      console.log('TOKEN: ',token);
 
       reservedCart = await axios.post(
         `${config.PRODUCT_SERVICE}/reserve`, 
@@ -53,7 +52,13 @@ router.post('/checkout', async (req: Request, res: Response)=>{
   
 
     }catch(axiosError: any){
+      console.log(axiosError);
       console.log(`Error calling ${config.PRODUCT_SERVICE}/reserve`, axiosError.response.status, axiosError.response.statusText);
+      if( Object.hasOwn(axiosError.response, 'data') ){
+          console.log(`Error: ${axiosError.response.data.message}`);
+          return res.status(500).json({ message: `Error reserving Cart (${axiosError.response.data.message})` });
+      }
+
       return res.status(500).json({ message: "Error reserving Cart" });
     }
     
@@ -72,6 +77,7 @@ router.post('/checkout', async (req: Request, res: Response)=>{
 
     try{
 
+      console.log("Creating Order ... ");
       orderResponse = await axios.post(
         `${config.ORDER_SERVICE}`, 
         orderData,
@@ -84,6 +90,7 @@ router.post('/checkout', async (req: Request, res: Response)=>{
       );
 
     }catch(axiosError: any){
+      console.log(axiosError);
       console.log(`Error calling ${config.ORDER_SERVICE}`, axiosError.response.status, axiosError.response.statusText);
       //Unreserve the Products, either do a call or add it to some Queue to be processed by Workers
       try{
