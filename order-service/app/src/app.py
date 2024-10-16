@@ -5,11 +5,12 @@ from contextlib import asynccontextmanager
 from src.middleware import JWTMiddleware, LOGMiddleware
 from .schemas import OrderCreateSchema, PyObjectId, OrderResponseSchema
 from pymongo.collection import Collection
-from .database import db
 from bson import ObjectId
 from typing import List
 from pydantic import ValidationError
 from datetime import datetime
+from pydantic import create_model
+from .models import *
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -74,5 +75,46 @@ async def create_order(request: Request, order_data: OrderCreateSchema, settings
         logger.error(e)
         raise HTTPException(status_code=500, detail="Failed to create Order")    
 
-
     return order_dict
+
+
+query_params_order_success = {"session_id": (str, "")}
+query_model = create_model("Query", **query_params_order_success)
+
+@app.get("/orderSuccess" , response_model=OrderResponseSchema)
+async def order_success(request: Request, params: query_model = Depends(), settings: Settings = Depends(get_settings)):
+
+
+    if int(request.state.user['role']) != 0:
+        raise HTTPException(status_code=401, detail="Unauthorized")
+
+    query_params = params.dict()
+    print("query_params: ", query_params)
+    if query_params['session_id'] == "":
+        raise HTTPException(status_code=400, detail="Invalid session_id")
+
+    if not ObjectId.is_valid(query_params['session_id']):
+        raise HTTPException(status_code=400, detail="Invalid session_id")
+
+    #Check the session id/order_id
+    order_id = query_params['session_id']
+    order_data = get_order_data(order_id)
+
+    if order_data is False:
+        raise HTTPException(status_code=500, detail="Unable to fetch Order !")
+
+    if order_data is None:
+        raise HTTPException(status_code=400, detail="Order not found !")
+
+    if order_data["status"] == 'CONFIRMED':
+        raise HTTPException(status_code=400, detail="No pending Order !")
+
+    '''
+        Check if order_data["userId"] matches request.state.user id
+    '''
+
+    ##Order Confirmed - Payment Successful
+    order_status = confirm_order(order_id)
+    order_data["status"] = 'CONFIRMED'
+
+    return order_data
