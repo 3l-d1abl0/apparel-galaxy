@@ -33,9 +33,33 @@ def confirm_order(order_id)-> bool:
         if order_data.modified_count > 0:
             return True
         else:
+            logger.error("Failed to updated cartDB  as CONFIRMED: ", order_id)
             return False
         
     except Exception as e:
         logger.error(e)
         logger.error("Error while confirming order::confirm_order: ", order_id)
+        return False
+    
+
+def add_failure_data(order_id):
+
+    update_failure = {
+        '$push': {
+            'failures': datetime.now()
+        }
+    }
+
+    try:
+        order_data = order_collection.update_one( { '_id': ObjectId(order_id) }, update_failure)
+        # Check if the document was updated
+        if order_data.modified_count > 0:
+            return True
+        else:
+            logger.error("Error while adding payment failure ::add_failure_data: ", order_id)
+            return False
+        
+    except Exception as e:
+        logger.error(e)
+        logger.error("Error while confirming order::add_failure_data: ", order_id)
         return False
