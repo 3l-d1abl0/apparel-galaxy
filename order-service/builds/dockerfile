@@ -35,7 +35,7 @@ COPY --from=builder /usr/local/ /usr/local/
 COPY --from=builder /usr/src/apparel-galaxy-order-service /usr/src/apparel-galaxy-order-service
 
 # Expose the port
-#EXPOSE 8000
+#EXPOSE 8089
 
 # Run the application
 CMD ["python3", "app/main.py"]
