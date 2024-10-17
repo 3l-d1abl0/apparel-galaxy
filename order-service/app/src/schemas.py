@@ -78,3 +78,10 @@ class OrderResponseSchema(BaseModel):
         populate_by_name = True
         arbitrary_types_allowed = True
         json_encoders = {ObjectId: str}
+
+class AllOrders(BaseModel):
+    orders: List[OrderResponseSchema]
+
+    class Config:
+        populate_by_name = True
+        arbitrary_types_allowed = True
