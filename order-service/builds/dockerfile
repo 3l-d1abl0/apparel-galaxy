@@ -1,0 +1,41 @@
+
+# Stage 1: Build
+FROM python:3.12.4 AS builder
+
+# Set working directory
+WORKDIR /usr/src/apparel-galaxy-order-service
+
+# Set environment variables
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+ENV DOCKER_ENV=1
+
+# Install system dependencies
+RUN apt-get update && apt-get clean
+
+# Install Python dependencies
+COPY requirements.txt .
+RUN pip install --upgrade pip && pip install -r requirements.txt
+
+# Copy the application code
+COPY app/ app/
+#Create folder for logs
+RUN mkdir logs
+
+# Stage 2: Run
+FROM python:3.12.4-slim
+
+# Set working directory
+WORKDIR /usr/src/apparel-galaxy-order-service
+
+# Copy installed dependencies from builder stage
+COPY --from=builder /usr/local/ /usr/local/
+
+# Copy the application code from builder stage
+COPY --from=builder /usr/src/apparel-galaxy-order-service /usr/src/apparel-galaxy-order-service
+
+# Expose the port
+#EXPOSE 8000
+
+# Run the application
+CMD ["python3", "app/main.py"]
