@@ -1,8 +1,8 @@
-import  { Request, Response } from "express";
+import  { Request, Response, NextFunction } from "express";
 import jwt from 'jsonwebtoken';
 import { config } from '../config/config.js';
 
-export default async function secured(req: Request, res: Response, next) {
+export default async function secured(req: Request, res: Response, next: NextFunction) {
         
     //check if no auth token
     if (req.headers["authorization"] == undefined) {
