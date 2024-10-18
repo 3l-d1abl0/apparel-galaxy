@@ -144,7 +144,7 @@ export async function reserveProducts1(items: CartItem[]){
                 throw new Error(`Unable to lock or insufficient quantity for item: ${item.vSku}`);
               }
         
-              lockedProductIds.push(prod._id);
+              lockedProductIds.push(prod._id as mongoose.Types.ObjectId);
 
             }//for
 
@@ -269,7 +269,7 @@ export async function reserveProducts(items: CartItem[]){
         { new: true, session }  // Use the session in the operation
       );
 
-      console.log("PRODUCT: ",product);
+      console.log("RESERVED PRODUCT: ",product);
 
       if (!product) {
         // If the product or enough stock is not found, abort the transaction
