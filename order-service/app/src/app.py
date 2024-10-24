@@ -39,25 +39,26 @@ app = FastAPI(lifespan=lifespan,
                 "email": "sameer.barha12@gmail.com",
             },)
 
+# Subapp for private routes
+private_app = FastAPI()
+
 # Add middlewares
 #app.add_middleware(BaseHTTPMiddleware, dispatch=ORDERSERVICEMiddleware.log_middleware)
 # app.add_middleware(BaseHTTPMiddleware, dispatch=log_middleware)
 # app.add_middleware(BaseHTTPMiddleware, dispatch=jwt_extract)
 
-# Add middlewares
-app.add_middleware(LOGMiddleware.LoggingMiddleware)
-app.add_middleware(JWTMiddleware.JWTMiddleware)
-
 #Ping Route
 @app.get("/ping")
 async def pong(settings: Settings = Depends(get_settings)):
-    return "pong"
+    return "pong from "+settings.SERVICE_NAME
 
-@app.get("/")
-async def welcome():
-    return { "service": "order" }
 
-@app.get("/order", response_model=AllOrders)
+# Add middlewares
+private_app.add_middleware(LOGMiddleware.LoggingMiddleware)
+private_app.add_middleware(JWTMiddleware.JWTMiddleware)
+
+
+@private_app.get("/order", response_model=AllOrders)
 async def fetch_order(request: Request, settings: Settings = Depends(get_settings)):
     user_id = request.state.user['id']
     print("USERID: ", user_id)
@@ -74,7 +75,7 @@ async def fetch_order(request: Request, settings: Settings = Depends(get_setting
     return AllOrders(orders=user_orders)
 
 
-@app.post("/order", response_model=OrderResponseSchema)
+@private_app.post("/order", response_model=OrderResponseSchema)
 async def create_order(request: Request, order_data: OrderCreateSchema, settings: Settings = Depends(get_settings)):
 
     try:
@@ -98,7 +99,7 @@ async def create_order(request: Request, order_data: OrderCreateSchema, settings
 query_params_order_success = {"session_id": (str, "")}
 query_model = create_model("Query", **query_params_order_success)
 
-@app.get("/orderSuccess" , response_model=OrderResponseSchema)
+@private_app.get("/orderSuccess" , response_model=OrderResponseSchema)
 async def order_success(request: Request, params: query_model = Depends(), settings: Settings = Depends(get_settings)):
 
     '''
@@ -150,7 +151,7 @@ async def order_success(request: Request, params: query_model = Depends(), setti
 
 
 
-@app.get("/orderFailure" , response_model=OrderResponseSchema)
+@private_app.get("/orderFailure" , response_model=OrderResponseSchema)
 async def order_failure(request: Request, params: query_model = Depends(), settings: Settings = Depends(get_settings)):
 
     '''
@@ -194,3 +195,5 @@ async def order_failure(request: Request, params: query_model = Depends(), setti
         raise HTTPException(status_code=500, detail="No able to register payment Failure !")
 
     return order_data
+
+app.mount("", private_app)
