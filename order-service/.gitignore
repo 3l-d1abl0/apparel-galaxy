@@ -3,6 +3,7 @@ order-service-env/*
 comms-order-service
 
 envs/.env
+envs/localhost.env
 
 htmlcov/
 .coverage

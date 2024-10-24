@@ -11,6 +11,7 @@ export const config = {
     cart_collection: process.env.MONGO_CART_COLLECTION || 'cart',
   },
   port: process.env.PORT || 3000,
+  SERVICE_NAME: process.env.SERVICE_NAME || "product-service",
   AUTH_SERVICE: process.env.AUTH_SERVICE || "http://localhost:8000",
   ORDER_SERVICE: process.env.ORDER_SERVICE || "http://localhost:9000",
   JWT_SECRET: process.env.JWT_SECRET || "your_secret_key",

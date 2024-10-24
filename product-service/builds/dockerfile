@@ -7,6 +7,9 @@ WORKDIR /usr/src/apparel-galaxy-product-service
 # Copy package.json and package-lock.json first for better caching
 COPY package*.json ./
 
+# Install curl and wget
+RUN apk add --no-cache curl wget
+
 # Install dependencies
 RUN npm install
 

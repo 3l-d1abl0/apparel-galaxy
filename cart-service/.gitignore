@@ -1,5 +1,6 @@
 node_modules/
 envs/.env
+envs/localhost.env
 
 comms-cart-service
 

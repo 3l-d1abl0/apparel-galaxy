@@ -79,7 +79,7 @@ router.post('/checkout', async (req: Request, res: Response)=>{
 
       console.log("Creating Order ... ");
       orderResponse = await axios.post(
-        `${config.ORDER_SERVICE}`, 
+        `${config.ORDER_SERVICE}/order`, 
         orderData,
         {
           headers: {

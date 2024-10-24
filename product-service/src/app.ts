@@ -36,6 +36,10 @@ mongoose.set('debug', function(collectionName, methodName, ...methodArgs) {
 });
 */
 
+app.get('/ping', (req: Request, res: Response) => {
+  res.send(`pong from ${config.SERVICE_NAME}`);
+});
+
 app.use(secured);
 app.use('/products', productRoutes);
 

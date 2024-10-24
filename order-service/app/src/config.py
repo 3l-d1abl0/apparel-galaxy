@@ -21,6 +21,7 @@ class Settings(BaseSettings):
     SECRET_SALT2: str = os.getenv("SECRET_SALT2", "your_secret_salt2")
     HASH_ROUNDS: int = os.getenv("HASH_ROUNDS", 2)
     PORT: int = os.getenv("PORT", 8000)
+    SERVICE_NAME: str = os.getenv("SERVICE_NAME", "order-service")
 
 
 @lru_cache()
