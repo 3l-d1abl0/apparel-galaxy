@@ -1,6 +1,9 @@
 
 # Stage 1: Build
-FROM python:3.12.4 AS builder
+FROM python:3.12.4-alpine AS builder
+
+# Install curl and wget
+RUN apk add --no-cache curl wget
 
 # Set working directory
 WORKDIR /usr/src/apparel-galaxy-order-service
@@ -10,11 +13,9 @@ ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 ENV DOCKER_ENV=1
 
-# Install system dependencies
-RUN apt-get update && apt-get clean
-
 # Install Python dependencies
 COPY requirements.txt .
+
 RUN pip install --upgrade pip && pip install -r requirements.txt
 
 # Copy the application code
@@ -23,7 +24,7 @@ COPY app/ app/
 RUN mkdir logs
 
 # Stage 2: Run
-FROM python:3.12.4-slim
+FROM python:3.12.4-alpine
 
 # Set working directory
 WORKDIR /usr/src/apparel-galaxy-order-service
