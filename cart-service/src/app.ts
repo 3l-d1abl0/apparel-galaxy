@@ -35,6 +35,10 @@ mongoose.set('debug', function(collectionName, methodName, ...methodArgs) {
 });
 */
 
+app.get('/ping', (req: Request, res: Response) => {
+  res.send("pong from cart service");
+});
+
 app.use(secured);
 app.use('/cart', cartRoutes);
 
