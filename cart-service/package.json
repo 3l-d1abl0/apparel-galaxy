@@ -2,15 +2,20 @@
   "name": "cart-service",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "src/server.js",
+  "type": "module",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "NODE_OPTIONS=--experimental-vm-modules jest --detectOpenHandles --colors --verbose --silent",
+    "build": "tsc -p .",
+    "start": "node dist/src/server.js",
+    "dev": "npx tsx src/server.ts"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "devDependencies": {
     "@types/express": "^4.17.21",
+    "@types/jsonwebtoken": "^9.0.7",
     "@types/node": "^22.5.5",
     "typescript": "^5.6.2"
   },

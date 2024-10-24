@@ -4,3 +4,5 @@ envs/.env
 comms-cart-service
 
 package-lock.json
+
+dist/

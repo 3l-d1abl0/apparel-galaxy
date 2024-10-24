@@ -4,16 +4,16 @@ import mongoose from 'mongoose';
 
 
 
-export async function getCartByEmail(userEmail: String):Promise<{ user: IUser; cart: {}; } | { user: IUser; cart: ICart; }> {
+export async function getCartByEmail(userEmail: String):Promise<{ user: IUser; cart: {}; } | { user: IUser; cart: ICart; } | null> {
 
     try{
 
-        const user: IUser = await UserModel.findOne({ email: userEmail });
+        const user: IUser | null = await UserModel.findOne({ email: userEmail });
         console.log('User: ',user);
         if(!user)
             throw new Error('USER_NOT_FOUND');;
 
-        let cart:ICart = await CartModel.findOne({ userId: user._id });
+        let cart:ICart | null = await CartModel.findOne({ userId: user._id });
 
         if(!cart) return {
             user: user,
