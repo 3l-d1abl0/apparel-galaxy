@@ -3,6 +3,15 @@
 Apparel Galaxy is a simple e-commerce APIs built using microservice Architecture. It queries apparel stored over MongoDB Cloud.
 User can create account and browser products and Order them.
 Can be deployed over localhost or cloud using containers (Docker/Kubernetes)
+I have personally deployed it via AWS Fargate on ECS Clusters.
+
+Following Diagram is just an illustration on AWS ECS Architecture:
+![ECS Architecture](https://github.com/3l-d1abl0/apparel-galaxy/blob/dad542c170363f730902dc4903449adb67b1dbef/images/overview-fargate.png)
+Image Source [AWS](https://docs.aws.amazon.com/images/AmazonECS/latest/developerguide/images/overview-fargate.png)
+
+
+Apparel Galaxy's overall architecture when deployed on ECS would look like:
+![Apprel-Galaxy](https://github.com/3l-d1abl0/apparel-galaxy/blob/dad542c170363f730902dc4903449adb67b1dbef/images/apparel-galaxy-service.drawio.png)
 
 Following is the breakdown of the the Services:
 ### 1. Auth Service
