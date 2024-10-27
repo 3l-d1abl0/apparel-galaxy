@@ -11,8 +11,9 @@ Following Diagram is just an illustration on AWS ECS Architecture:
 Image Source [AWS](https://docs.aws.amazon.com/images/AmazonECS/latest/developerguide/images/overview-fargate.png)
 
 
+
 **Apparel Galaxy**'s overall architecture when deployed on ECS would look like:
-![Apprel-Galaxy](https://github.com/3l-d1abl0/apparel-galaxy/blob/dad542c170363f730902dc4903449adb67b1dbef/images/apparel-galaxy-service.drawio.png)
+![Apprel-Galaxy](https://github.com/3l-d1abl0/apparel-galaxy/blob/b169be13d6937b4ecd9e61523b39179380987aff/images/apparel-galaxy-service.drawio.png)
 
 The diagram only shows some of the services available.
 
