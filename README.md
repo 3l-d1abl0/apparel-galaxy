@@ -7,11 +7,15 @@ I have personally deployed it via AWS Fargate on ECS Clusters.
 
 Following Diagram is just an illustration on AWS ECS Architecture:
 ![ECS Architecture](https://github.com/3l-d1abl0/apparel-galaxy/blob/dad542c170363f730902dc4903449adb67b1dbef/images/overview-fargate.png)
+
 Image Source [AWS](https://docs.aws.amazon.com/images/AmazonECS/latest/developerguide/images/overview-fargate.png)
 
 
-Apparel Galaxy's overall architecture when deployed on ECS would look like:
+
+**Apparel Galaxy**'s overall architecture when deployed on ECS would look like:
 ![Apprel-Galaxy](https://github.com/3l-d1abl0/apparel-galaxy/blob/b169be13d6937b4ecd9e61523b39179380987aff/images/apparel-galaxy-service.drawio.png)
+
+The diagram only shows some of the services available.
 
 Following is the breakdown of the the Services:
 ### 1. Auth Service
