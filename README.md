@@ -75,6 +75,9 @@ Cart Service is responsible for handling user's cart operation and checking out 
 	
 > More details on the CartService README
 
+## Deployment 🚀🚀🚀
+
+- Refer to the [Deployment Docs](https://github.com/3l-d1abl0/apparel-galaxy/tree/48e86c04ff3d908c8ea8d89de8d3423318cbde89/deployment) for deployment on localhost, docker or AWS Elastic Container Service (ECS)
 
 ## Built Using
 
