@@ -1,10 +1,12 @@
 import { Request, Response, Router } from 'express';
-//import { productModel } from '../model/product.js';
 import * as productModel from '../model/product.js';
 import { projectionProductTrimmed } from '../model/productModel.js';
 import { body, validationResult } from 'express-validator';
 import mongoose from 'mongoose';
 import { Product, TrimmedProduct  } from '../model/productModel.js';
+import { config } from '../config/config.js';
+import{ createHmac, timingSafeEqual }  from 'crypto';
+import signatureCheck  from '../middleware/signatureCheck.js';
 /*
 interface PaginationQuery {
   page?: string;
@@ -120,13 +122,18 @@ router.post('/reserve', [
   body('items.*.vSku').isString(),
   body('items.*.vQuantity').isInt({ min: 1 }),
   body('items.*.vPrice').isFloat({ min: 0 }),
-  ], async(req, res)=>{
+  ],
+  signatureCheck,
+  async(req, res)=>{
 
 
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.status(400).json({ errors: errors.array() });
     }
+
+    console.log(req.headers);
+    return res.status(400).json({ errors: "Intentional" });
 
     const items: CartItem[] = req.body.items;
 
