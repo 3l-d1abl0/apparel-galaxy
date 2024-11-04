@@ -5,6 +5,7 @@ import mongoose from 'mongoose';
 import { ICart } from '../model/cart/cartModel.js';
 import axios, { Axios, AxiosResponse } from 'axios'; 
 import { config } from '../config/config.js';
+import{ createHmac }  from 'crypto';
 
 const router = Router();
 
@@ -33,6 +34,11 @@ router.post('/checkout', async (req: Request, res: Response)=>{
       items: cart.items,
     };
 
+
+    // Create the HMAC signature
+    const payload = JSON.stringify({ message: config.IPC_PASSPHRASE });
+    const hmac = createHmac(config.HMAC_ALGORITHM, config.JWT_SECRET).update(payload).digest('hex');
+
     //1. Reserve the Products from the Cart
     let reservedCart: AxiosResponse; 
     let token: string = req.headers["authorization"].replace("Bearer ", "");
@@ -44,8 +50,10 @@ router.post('/checkout', async (req: Request, res: Response)=>{
         productsToReserve,
         {
           headers: {
-            Authorization: `Bearer ${token}`,
+            'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json',
+            'Service-Identity': `HMAC ${hmac}`,
+            'Service-Timestamp': Math.floor(Date.now() / 1000).toString(),
           },
         }
       );

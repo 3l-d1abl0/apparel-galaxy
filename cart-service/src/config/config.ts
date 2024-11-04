@@ -17,5 +17,8 @@ export const config = {
   JWT_SECRET: process.env.JWT_SECRET || "your_secret_key",
   JWT_ALGORITHM: process.env.JWT_ALGORITHM || "HS256",
   JWT_EXPIRATION_TIME_MINUTES: process.env.JWT_EXPIRATION_TIME_MINUTES || 10,
+  HMAC_ALGORITHM: process.env.HMAC_ALGORITHM || "sha256",
+  IPC_PASSPHRASE: process.env.IPC_PASSPHRASE || "some_passphrase",
+  IPC_TIMEOUT: process.env.IPC_TIMEOUT || 60,
   
 };
