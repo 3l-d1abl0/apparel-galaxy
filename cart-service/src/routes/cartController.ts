@@ -99,7 +99,11 @@ router.post('/checkout', async (req: Request, res: Response)=>{
 
     }catch(axiosError: any){
       console.log(axiosError);
-      console.log(`Error calling ${config.ORDER_SERVICE}`, axiosError.response.status, axiosError.response.statusText);
+
+      if(axiosError.response === undefined)
+        console.log(`Error calling ${config.ORDER_SERVICE}`, axiosError.cause.code);
+      else
+        console.log(`Error calling ${config.ORDER_SERVICE}`, axiosError.response.status, axiosError.response.statusText);
       //Unreserve the Products, either do a call or add it to some Queue to be processed by Workers
       try{
           reservedCart = await axios.post(
@@ -109,6 +113,8 @@ router.post('/checkout', async (req: Request, res: Response)=>{
               headers: {
                 Authorization: `Bearer ${token}`,
                 'Content-Type': 'application/json',
+                'Service-Identity': `HMAC ${hmac}`,
+                'Service-Timestamp': Math.floor(Date.now() / 1000).toString(),
               },
             }
           );
