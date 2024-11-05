@@ -37,8 +37,11 @@ router.post('/checkout', async (req: Request, res: Response)=>{
 
     // Create the HMAC signature
     const payload = JSON.stringify({ message: config.IPC_PASSPHRASE });
+    console.log("PAYLOAD: ", payload);
     const hmac = createHmac(config.HMAC_ALGORITHM, config.JWT_SECRET).update(payload).digest('hex');
 
+    console.log('HMAC: ', hmac);
+    
     //1. Reserve the Products from the Cart
     let reservedCart: AxiosResponse; 
     let token: string = req.headers["authorization"].replace("Bearer ", "");
@@ -75,7 +78,7 @@ router.post('/checkout', async (req: Request, res: Response)=>{
 
     //2. Proceed to Create Order
     const orderData = {
-      carId: cart._id,
+      cartId: cart._id,
       userId: cart.userId,
       items: cart.items,
       totalAmount: cart.totalAmount
@@ -93,6 +96,8 @@ router.post('/checkout', async (req: Request, res: Response)=>{
           headers: {
             Authorization: `Bearer ${token}`,
             'Content-Type': 'application/json',
+            'Service-Identity': `HMAC ${hmac}`,
+            'Service-Timestamp': Math.floor(Date.now() / 1000).toString(),
           },
         }
       );
