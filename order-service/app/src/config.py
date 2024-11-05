@@ -22,6 +22,9 @@ class Settings(BaseSettings):
     HASH_ROUNDS: int = os.getenv("HASH_ROUNDS", 2)
     PORT: int = os.getenv("PORT", 8000)
     SERVICE_NAME: str = os.getenv("SERVICE_NAME", "order-service")
+    HMAC_ALGORITHM: str = os.getenv("HMAC_ALGORITHM", "sha256")
+    IPC_PASSPHRASE: str = os.getenv("IPC_PASSPHRASE", "apparel-galaxy-2024")
+    IPC_TIMEOUT: int = os.getenv("IPC_TIMEOUT", 120)
 
 
 @lru_cache()

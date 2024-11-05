@@ -295,3 +295,55 @@ export async function reserveProducts(items: CartItem[]){
   }
 
 }
+
+
+//function to Unreserver items from inventory
+export async function unReserveProducts(items: CartItem[]){
+
+  // Start a MongoDB session for transactions
+ const session = await mongoose.startSession();
+ session.startTransaction();
+
+ try {
+   // Loop through items to unreserve inventory
+   for (const item of items) {
+     const { productId, vSku, vQuantity } = item;
+
+     // Find the product and check if the required quantity is available using an atomic update
+     const product = await Product.findOneAndUpdate(
+       {
+         _id: productId,
+         'variants.vSku': vSku
+       },
+       {
+         $inc: { 'variants.$.vQuantity': vQuantity }  // Atomically increase the quantity
+       },
+       { new: true, session }  // Use the session in the operation
+     );
+
+     console.log("UNRESERVED PRODUCT: ",product);
+
+     if (!product) {
+       // If the product or enough stock is not found, abort the transaction
+       await session.abortTransaction();
+       return { status : false, type: 1, message: `Insufficient quantity or product not found for SKU ${vSku}` };
+     }
+   }
+
+   // Commit the transaction
+   await session.commitTransaction();
+   session.endSession();
+   return { status : true };
+   
+
+ } catch (error) {
+   
+   // Rollback the transaction in case of error
+   await session.abortTransaction();
+   session.endSession();
+   console.error("product Model::unReserveProducts", error);
+   return { status : false, type: 2, message: 'Internal Server Error !' };
+
+ }
+
+}

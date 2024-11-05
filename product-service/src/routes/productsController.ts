@@ -1,10 +1,12 @@
 import { Request, Response, Router } from 'express';
-//import { productModel } from '../model/product.js';
 import * as productModel from '../model/product.js';
 import { projectionProductTrimmed } from '../model/productModel.js';
 import { body, validationResult } from 'express-validator';
 import mongoose from 'mongoose';
 import { Product, TrimmedProduct  } from '../model/productModel.js';
+import { config } from '../config/config.js';
+import{ createHmac, timingSafeEqual }  from 'crypto';
+import signatureCheck  from '../middleware/signatureCheck.js';
 /*
 interface PaginationQuery {
   page?: string;
@@ -120,7 +122,9 @@ router.post('/reserve', [
   body('items.*.vSku').isString(),
   body('items.*.vQuantity').isInt({ min: 1 }),
   body('items.*.vPrice').isFloat({ min: 0 }),
-  ], async(req, res)=>{
+  ],
+  signatureCheck,
+  async(req: Request, res: Response)=>{
 
 
     const errors = validationResult(req);
@@ -147,50 +151,41 @@ router.post('/reserve', [
 });
 
 
-// Checkout Route with Concurrency Handling
-router.post('/checkout', async (req: Request, res: Response) => {
-  const { items } = req.body;
-  const session = await mongoose.startSession(); // Start a MongoDB session for transactions
-  session.startTransaction();
 
-  try {
-    // Loop through items to reserve inventory
-    for (const item of items) {
-      const { productId, vSku, vQuantity } = item;
 
-      // Find the product and check if the required quantity is available using an atomic update
-      const product = await Product.findOneAndUpdate(
-        {
-          _id: productId,
-          'variants.vSku': vSku,
-          'variants.vQuantity': { $gte: vQuantity }  // Ensure enough quantity is available
-        },
-        {
-          $inc: { 'variants.$.vQuantity': -vQuantity }  // Atomically decrease the quantity
-        },
-        { new: true, session }  // Use the session in the operation
-      );
+router.post('/unreserve', [
+  body('items').isArray(),
+  body('items.*.productId').isString(),
+  body('items.*.vSku').isString(),
+  body('items.*.vQuantity').isInt({ min: 1 }),
+  body('items.*.vPrice').isFloat({ min: 0 }),
+  ],
+  signatureCheck,
+  async(req: Request, res: Response)=>{
 
-      if (!product) {
-        // If the product or enough stock is not found, abort the transaction
-        await session.abortTransaction();
-        return res.status(400).json({ message: `Insufficient quantity or product not found for SKU ${vSku}` });
+
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+
+    const items: CartItem[] = req.body.items;
+    
+    //Try to Unreserve the Product
+    const unReserveStatus =  await productModel.unReserveProducts(items);
+
+    if(unReserveStatus.status == true){
+      //Products reserved
+      res.status(200).json({ message: 'Items unreserved successfully' });
+    }else{
+      if(unReserveStatus.type ==1)
+        res.status(400).json({ message: unReserveStatus.message });
+      else{
+        res.status(500).json({ mesage: unReserveStatus.message });
       }
     }
 
-    // Commit the transaction
-    await session.commitTransaction();
-    session.endSession();
 
-    return res.status(200).json({ message: 'Products reserved successfully' });
-
-  } catch (error) {
-    // Rollback the transaction in case of error
-    await session.abortTransaction();
-    session.endSession();
-    console.error(error);
-    return res.status(500).json({ message: 'Server error' });
-  }
 });
 
 

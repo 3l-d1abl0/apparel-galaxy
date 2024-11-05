@@ -5,6 +5,7 @@ import mongoose from 'mongoose';
 import { ICart } from '../model/cart/cartModel.js';
 import axios, { Axios, AxiosResponse } from 'axios'; 
 import { config } from '../config/config.js';
+import{ createHmac }  from 'crypto';
 
 const router = Router();
 
@@ -33,6 +34,14 @@ router.post('/checkout', async (req: Request, res: Response)=>{
       items: cart.items,
     };
 
+
+    // Create the HMAC signature
+    const payload = JSON.stringify({ message: config.IPC_PASSPHRASE });
+    console.log("PAYLOAD: ", payload);
+    const hmac = createHmac(config.HMAC_ALGORITHM, config.JWT_SECRET).update(payload).digest('hex');
+
+    console.log('HMAC: ', hmac);
+    
     //1. Reserve the Products from the Cart
     let reservedCart: AxiosResponse; 
     let token: string = req.headers["authorization"].replace("Bearer ", "");
@@ -44,8 +53,10 @@ router.post('/checkout', async (req: Request, res: Response)=>{
         productsToReserve,
         {
           headers: {
-            Authorization: `Bearer ${token}`,
+            'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json',
+            'Service-Identity': `HMAC ${hmac}`,
+            'Service-Timestamp': Math.floor(Date.now() / 1000).toString(),
           },
         }
       );
@@ -67,7 +78,7 @@ router.post('/checkout', async (req: Request, res: Response)=>{
 
     //2. Proceed to Create Order
     const orderData = {
-      carId: cart._id,
+      cartId: cart._id,
       userId: cart.userId,
       items: cart.items,
       totalAmount: cart.totalAmount
@@ -85,13 +96,19 @@ router.post('/checkout', async (req: Request, res: Response)=>{
           headers: {
             Authorization: `Bearer ${token}`,
             'Content-Type': 'application/json',
+            'Service-Identity': `HMAC ${hmac}`,
+            'Service-Timestamp': Math.floor(Date.now() / 1000).toString(),
           },
         }
       );
 
     }catch(axiosError: any){
       console.log(axiosError);
-      console.log(`Error calling ${config.ORDER_SERVICE}`, axiosError.response.status, axiosError.response.statusText);
+
+      if(axiosError.response === undefined)
+        console.log(`Error calling ${config.ORDER_SERVICE}`, axiosError.cause.code);
+      else
+        console.log(`Error calling ${config.ORDER_SERVICE}`, axiosError.response.status, axiosError.response.statusText);
       //Unreserve the Products, either do a call or add it to some Queue to be processed by Workers
       try{
           reservedCart = await axios.post(
@@ -101,6 +118,8 @@ router.post('/checkout', async (req: Request, res: Response)=>{
               headers: {
                 Authorization: `Bearer ${token}`,
                 'Content-Type': 'application/json',
+                'Service-Identity': `HMAC ${hmac}`,
+                'Service-Timestamp': Math.floor(Date.now() / 1000).toString(),
               },
             }
           );
