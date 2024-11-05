@@ -3,6 +3,7 @@ from .logger import logger
 from .config import get_settings,Settings
 from contextlib import asynccontextmanager
 from src.middleware import JWTMiddleware, LOGMiddleware
+from src.middleware.SignatureCheck import signature_check
 from .schemas import OrderCreateSchema, OrderResponseSchema, AllOrders
 from pymongo.collection import Collection
 from bson import ObjectId
@@ -75,7 +76,8 @@ async def fetch_order(request: Request, settings: Settings = Depends(get_setting
     return AllOrders(orders=user_orders)
 
 
-@private_app.post("/order", response_model=OrderResponseSchema)
+#@private_app.post("/order", dependencies=[Depends(signature_check)])
+@private_app.post("/order", response_model=OrderResponseSchema, dependencies=[Depends(signature_check)])
 async def create_order(request: Request, order_data: OrderCreateSchema, settings: Settings = Depends(get_settings)):
 
     try:
@@ -89,8 +91,9 @@ async def create_order(request: Request, order_data: OrderCreateSchema, settings
     
     try:   
         orders_collection.insert_one(order_dict)
+        pass
     except Exception as e:
-        logger.error(e)
+        logger.error("/order",e)
         raise HTTPException(status_code=500, detail="Failed to create Order")    
 
     return order_dict
